@@ -2,7 +2,7 @@
  * Windows: Please do not use trailing comma as windows will fail with token error
  */
 
-const { series, rimraf, } = require('nps-utils');
+const { series, rimraf } = require('nps-utils')
 
 module.exports = {
     scripts: {
@@ -12,7 +12,7 @@ module.exports = {
          */
         start: {
             script: 'cross-env NODE_ENV=production node dist/app.js',
-            description: 'Starts the builded app',
+            description: 'Starts the builded app'
         },
         /**
          * Serves the current app and watches for changes to restart it
@@ -23,31 +23,28 @@ module.exports = {
                     'nps banner.serve',
                     'nodemon --watch src --watch .env --inspect'
                 ),
-                description: 'Serves the current app and watches for changes to restart it, you may attach inspector to it.'
+                description:
+                    'Serves the current app and watches for changes to restart it, you may attach inspector to it.'
             },
             script: series(
                 'nps banner.serve',
                 'nodemon --watch src --watch .env'
             ),
-            description: 'Serves the current app and watches for changes to restart it'
+            description:
+                'Serves the current app and watches for changes to restart it'
         },
         /**
          * Setup of the development environment
          */
         setup: {
-            script: series(
-                'yarn install',
-                'nps db.setup',
-            ),
+            script: series('yarn install', 'nps db.setup'),
             description: 'Setup`s the development environment(yarn & database)'
         },
         /**
          * Creates the needed configuration files
          */
         config: {
-            script: series(
-                runFast('./commands/tsconfig.ts'),
-            ),
+            script: series(runFast('./commands/tsconfig.ts')),
             hiddenFromHelp: true
         },
         /**
@@ -62,15 +59,15 @@ module.exports = {
                 'nps transpile',
                 'nps copy',
                 'nps copy.tmp',
-                'nps clean.tmp',
+                'nps clean.tmp'
             ),
             description: 'Builds the app into the dist directory'
         },
         /**
-         * Runs TSLint over your project
+         * Runs eslint over your project
          */
         lint: {
-            script: tslint(`./src/**/*.ts`),
+            script: eslint(`./src/**/*.ts`),
             hiddenFromHelp: true
         },
         /**
@@ -85,10 +82,7 @@ module.exports = {
          */
         clean: {
             default: {
-                script: series(
-                    `nps banner.clean`,
-                    `nps clean.dist`
-                ),
+                script: series(`nps banner.clean`, `nps clean.dist`),
                 description: 'Deletes the ./dist folder'
             },
             dist: {
@@ -105,31 +99,19 @@ module.exports = {
          */
         copy: {
             default: {
-                script: series(
-                    `nps copy.swagger`,
-                    `nps copy.public`
-                ),
+                script: series(`nps copy.swagger`, `nps copy.public`),
                 hiddenFromHelp: true
             },
             swagger: {
-                script: copy(
-                    './src/api/swagger.json',
-                    './dist'
-                ),
+                script: copy('./src/api/swagger.json', './dist'),
                 hiddenFromHelp: true
             },
             public: {
-                script: copy(
-                    './src/public/*',
-                    './dist'
-                ),
+                script: copy('./src/public/*', './dist'),
                 hiddenFromHelp: true
             },
             tmp: {
-                script: copyDir(
-                    './.tmp/src',
-                    './dist'
-                ),
+                script: copyDir('./.tmp/src', './dist'),
                 hiddenFromHelp: true
             }
         },
@@ -166,11 +148,7 @@ module.exports = {
                 description: 'Drops the schema of the database'
             },
             setup: {
-                script: series(
-                    'nps db.drop',
-                    'nps db.migrate',
-                    'nps db.seed'
-                ),
+                script: series('nps db.drop', 'nps db.migrate', 'nps db.seed'),
                 description: 'Recreates the database with seeded data'
             }
         },
@@ -189,11 +167,12 @@ module.exports = {
                     description: 'Runs the unit tests'
                 },
                 pretest: {
-                    script: tslint(`./test/unit/**.ts`),
+                    script: eslint(`./test/unit/**.ts`),
                     hiddenFromHelp: true
                 },
                 run: {
-                    script: 'cross-env NODE_ENV=test jest --testPathPattern=unit',
+                    script:
+                        'cross-env NODE_ENV=test jest --testPathPattern=unit',
                     hiddenFromHelp: true
                 },
                 verbose: {
@@ -215,12 +194,13 @@ module.exports = {
                     description: 'Runs the integration tests'
                 },
                 pretest: {
-                    script: tslint(`./test/integration/**.ts`),
+                    script: eslint(`./test/integration/**.ts`),
                     hiddenFromHelp: true
                 },
                 run: {
                     // -i. Run all tests serially in the current process, rather than creating a worker pool of child processes that run tests. This can be useful for debugging.
-                    script: 'cross-env NODE_ENV=test jest --testPathPattern=integration -i',
+                    script:
+                        'cross-env NODE_ENV=test jest --testPathPattern=integration -i',
                     hiddenFromHelp: true
                 },
                 verbose: {
@@ -242,12 +222,13 @@ module.exports = {
                     description: 'Runs the e2e tests'
                 },
                 pretest: {
-                    script: tslint(`./test/e2e/**.ts`),
+                    script: eslint(`./test/e2e/**.ts`),
                     hiddenFromHelp: true
                 },
                 run: {
                     // -i. Run all tests serially in the current process, rather than creating a worker pool of child processes that run tests. This can be useful for debugging.
-                    script: 'cross-env NODE_ENV=test jest --testPathPattern=e2e -i',
+                    script:
+                        'cross-env NODE_ENV=test jest --testPathPattern=e2e -i',
                     hiddenFromHelp: true
                 },
                 verbose: {
@@ -258,7 +239,7 @@ module.exports = {
                     script: 'nps "test --coverage"',
                     hiddenFromHelp: true
                 }
-            },
+            }
         },
         /**
          * This creates pretty banner to the terminal
@@ -275,33 +256,33 @@ module.exports = {
             clean: banner('clean')
         }
     }
-};
+}
 
 function banner(name) {
     return {
         hiddenFromHelp: true,
         silent: true,
         description: `Shows ${name} banners to the console`,
-        script: runFast(`./commands/banner.ts ${name}`),
-    };
+        script: runFast(`./commands/banner.ts ${name}`)
+    }
 }
 
 function copy(source, target) {
-    return `copyfiles --up 1 ${source} ${target}`;
+    return `copyfiles --up 1 ${source} ${target}`
 }
 
 function copyDir(source, target) {
-    return `ncp ${source} ${target}`;
+    return `ncp ${source} ${target}`
 }
 
 function run(path) {
-    return `ts-node ${path}`;
+    return `ts-node ${path}`
 }
 
 function runFast(path) {
-    return `ts-node --transpileOnly ${path}`;
+    return `ts-node --transpileOnly ${path}`
 }
 
-function tslint(path) {
-    return `tslint -c ./tslint.json ${path} --format stylish`;
+function eslint(path) {
+    return `eslint ${path} --ext ts --fix`
 }

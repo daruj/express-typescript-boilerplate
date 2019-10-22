@@ -1,9 +1,11 @@
-import express from 'express';
-import { ContainerInstance } from 'typedi';
+import { ContainerInstance } from 'typedi'
+import { User } from './models/User'
+import express from 'express'
 
 export interface Context {
-  requestId: number;
-  request: express.Request;
-  response: express.Response;
-  container: ContainerInstance;
+    requestId: string
+    request: express.Request
+    response: express.Response
+    container: ContainerInstance
+    user?: User
 }

@@ -1,15 +1,20 @@
-import { Application } from 'express';
-import { MicroframeworkLoader, MicroframeworkSettings } from 'microframework-w3tec';
-import { createExpressServer } from 'routing-controllers';
+import {
+    MicroframeworkLoader,
+    MicroframeworkSettings
+} from 'microframework-w3tec'
 
-import { authorizationChecker } from '../auth/authorizationChecker';
-import { currentUserChecker } from '../auth/currentUserChecker';
-import { env } from '../env';
+import { Application } from 'express'
+import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
+import { createExpressServer } from 'routing-controllers'
+import { env } from '../env'
+import flash from 'connect-flash'
+import session from 'express-session'
 
-export const expressLoader: MicroframeworkLoader = (settings: MicroframeworkSettings | undefined) => {
+export const expressLoader: MicroframeworkLoader = (
+    settings: MicroframeworkSettings | undefined
+) => {
     if (settings) {
-        const connection = settings.getData('connection');
-
         /**
          * We create a new express server instance.
          * We could have also use useExpressServer here to attach controllers to an existing express instance.
@@ -25,22 +30,25 @@ export const expressLoader: MicroframeworkLoader = (settings: MicroframeworkSett
              */
             controllers: env.app.dirs.controllers,
             middlewares: env.app.dirs.middlewares,
-            interceptors: env.app.dirs.interceptors,
+            interceptors: env.app.dirs.interceptors
 
             /**
              * Authorization features
              */
-            authorizationChecker: authorizationChecker(connection),
-            currentUserChecker: currentUserChecker(connection),
-        });
+        })
 
         // Run application to listen on given port
         if (!env.isTest) {
-            const server = expressApp.listen(env.app.port);
-            settings.setData('express_server', server);
+            const server = expressApp.listen(env.app.port)
+            settings.setData('express_server', server)
         }
 
+        expressApp.use(bodyParser.json())
+        expressApp.use(cookieParser())
+        expressApp.use(session({ secret: env.app.session.secret }))
+        expressApp.use(flash())
+
         // Here we can set the data for other loaders
-        settings.setData('express_app', expressApp);
+        settings.setData('express_app', expressApp)
     }
-};
+}

@@ -1,5 +1,6 @@
-import * as path from 'path';
-import * as winston from 'winston';
+import * as path from 'path'
+import * as uuid from 'uuid'
+import * as winston from 'winston'
 
 /**
  * core.Log
@@ -13,51 +14,74 @@ import * as winston from 'winston';
  */
 
 export class Logger {
+    public static DEFAULT_SCOPE = 'app'
 
-    public static DEFAULT_SCOPE = 'app';
-
-    private static parsePathToScope(filepath: string): string {
+    private static parsePath(filepath: string): [string, string] {
         if (filepath.indexOf(path.sep) >= 0) {
-            filepath = filepath.replace(process.cwd(), '');
-            filepath = filepath.replace(`${path.sep}src${path.sep}`, '');
-            filepath = filepath.replace(`${path.sep}dist${path.sep}`, '');
-            filepath = filepath.replace('.ts', '');
-            filepath = filepath.replace('.js', '');
-            filepath = filepath.replace(path.sep, ':');
+            filepath = filepath.replace(process.cwd(), '')
+            filepath = filepath.replace(`${path.sep}src${path.sep}`, '')
+            filepath = filepath.replace(`${path.sep}dist${path.sep}`, '')
+            filepath = filepath.replace('.ts', '')
+            filepath = filepath.replace('.js', '')
+            filepath = filepath.replace(path.sep, ':')
         }
-        return filepath;
+        const idx = filepath.indexOf('/')
+        if (idx >= 0) {
+            return [filepath.substring(0, idx), filepath.substring(idx + 1)]
+        }
+        return [filepath, '']
     }
 
-    private scope: string;
+    private category: string
+    private service: string
 
-    constructor(scope?: string) {
-        this.scope = Logger.parsePathToScope((scope) ? scope : Logger.DEFAULT_SCOPE);
+    private baseMeta: any
+
+    constructor(scope?: string, baseMeta: any = {}) {
+        ;[this.category, this.service] = Logger.parsePath(
+            scope ? scope : Logger.DEFAULT_SCOPE
+        )
+        this.baseMeta = baseMeta
     }
 
-    public debug(message: string, ...args: any[]): void {
-        this.log('debug', message, args);
+    public debug(message: string, meta: any = {}): void {
+        this.log('debug', message, meta)
     }
 
-    public info(message: string, ...args: any[]): void {
-        this.log('info', message, args);
+    public info(message: string, meta: any = {}): void {
+        this.log('info', message, meta)
     }
 
-    public warn(message: string, ...args: any[]): void {
-        this.log('warn', message, args);
+    public warn(message: string, meta: any = {}): void {
+        this.log('warn', message, meta)
     }
 
-    public error(message: string, ...args: any[]): void {
-        this.log('error', message, args);
+    public error(message: string, meta: any = {}, error?: Error): void {
+        let newMessage = message
+        const newMeta = Object.assign({}, meta)
+
+        if (error) {
+            newMessage = `${message}: ${error.message ? error.message : error}`
+            if (error.stack) {
+                newMeta.stack = error.stack
+                    .split('\n')
+                    .slice(1)
+                    .map(line => line.replace(/^[\s]*at[\s]+/, '').trim())
+            }
+            newMeta.errorId = uuid.v4()
+        }
+
+        this.log('error', newMessage, newMeta)
     }
 
-    private log(level: string, message: string, args: any[]): void {
+    private log(level: string, message: string, meta): void {
         if (winston) {
-            winston[level](`${this.formatScope()} ${message}`, args);
+            winston[level](message, {
+                ...this.baseMeta,
+                ...meta,
+                category: this.category,
+                service: this.service
+            })
         }
     }
-
-    private formatScope(): string {
-        return `[${this.scope}]`;
-    }
-
 }
