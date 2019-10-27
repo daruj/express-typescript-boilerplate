@@ -1,66 +1,58 @@
-import * as bcrypt from 'bcrypt';
-import { Exclude } from 'class-transformer';
-import { IsNotEmpty } from 'class-validator';
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryColumn,
+    UpdateDateColumn
+} from 'typeorm'
 
-import { Pet } from './Pet';
+import { IsNotEmpty } from 'class-validator'
+import { Role } from './Role'
 
-@Entity()
+@Entity('users')
 export class User {
-
-    public static hashPassword(password: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            bcrypt.hash(password, 10, (err, hash) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(hash);
-            });
-        });
-    }
-
-    public static comparePassword(user: User, password: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            bcrypt.compare(password, user.password, (err, res) => {
-                resolve(res === true);
-            });
-        });
-    }
-
     @PrimaryColumn('uuid')
-    public id: string;
+    public id: string
+
+    @IsNotEmpty()
+    @Column()
+    public username: string
+
+    @IsNotEmpty()
+    @Column()
+    public email: string
 
     @IsNotEmpty()
     @Column({ name: 'first_name' })
-    public firstName: string;
+    public firstName: string
 
     @IsNotEmpty()
     @Column({ name: 'last_name' })
-    public lastName: string;
+    public lastName: string
+
+    @Column({ name: 'photo_url', nullable: true })
+    public photoUrl?: string
+
+    @Column({ name: 'phone_number', nullable: true })
+    public phoneNumber?: string
+
+    @ManyToOne(type => Role, role => role.name)
+    @JoinColumn({ name: 'role_id' })
+    public role: Role
 
     @IsNotEmpty()
     @Column()
-    public email: string;
+    public active: boolean
 
-    @IsNotEmpty()
-    @Column()
-    @Exclude()
-    public password: string;
+    @CreateDateColumn({ type: 'timestamp' })
+    public created_at: Date
 
-    @IsNotEmpty()
-    @Column()
-    public username: string;
-
-    @OneToMany(type => Pet, pet => pet.user)
-    public pets: Pet[];
+    @UpdateDateColumn({ type: 'timestamp' })
+    public updated_at: Date
 
     public toString(): string {
-        return `${this.firstName} ${this.lastName} (${this.email})`;
+        return `${this.firstName} ${this.lastName} (${this.email})`
     }
-
-    @BeforeInsert()
-    public async hashPassword(): Promise<void> {
-        this.password = await User.hashPassword(this.password);
-    }
-
 }

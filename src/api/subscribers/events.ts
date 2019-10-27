@@ -6,8 +6,16 @@
 export const events = {
     user: {
         created: 'onUserCreate',
+        updated: 'onUserUpdate',
+        find: 'onUserFind',
+        findMany: 'onUserFindMany',
+        removed: 'onUserRemove'
     },
-    pet: {
-        created: 'onPetCreate',
-    },
-};
+    role: {
+        created: 'onRoleCreate',
+        updated: 'onRoleUpdate',
+        find: 'onRoleFind',
+        findMany: 'onRoleFindMany',
+        removed: 'onRoleRemove'
+    }
+}

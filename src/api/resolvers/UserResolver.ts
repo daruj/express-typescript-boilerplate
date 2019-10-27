@@ -1,28 +1,26 @@
-import { FieldResolver, Query, Resolver, Root } from 'type-graphql';
-import { Service } from 'typedi';
+import { Query, Resolver, Ctx, Authorized } from 'type-graphql'
 
-import { User as UserModel } from '../models/User';
-import { PetService } from '../services/PetService';
-import { UserService } from '../services/UserService';
-import { User } from '../types/User';
+import { Logged } from '../../decorators/Logged'
+import { ROLES } from '../constants'
+import { Service } from 'typedi'
+import { User } from '../types/User'
+import { UserService } from '../services/UserService'
+import { Context } from '../Context'
 
 @Service()
 @Resolver(of => User)
+@Logged(__filename)
 export class UserResolver {
+    constructor(private userService: UserService) {}
 
-    constructor(
-        private userService: UserService,
-        private petService: PetService
-        ) {}
+    @Query(returns => User)
+    @Authorized(ROLES.SUPER_ADMIN, ROLES.USER)
+    public me(@Ctx() { user }: Context): Promise<User> {
+        return this.userService.findOne({ id: user.id })
+    }
 
     @Query(returns => [User])
-    public users(): Promise<any> {
-      return this.userService.find();
+    public users(): Promise<User[]> {
+        return this.userService.find()
     }
-
-    @FieldResolver()
-    public async pets(@Root() user: UserModel): Promise<any> {
-        return this.petService.findByUser(user);
-    }
-
 }
