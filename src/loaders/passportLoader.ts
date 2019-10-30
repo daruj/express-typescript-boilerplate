@@ -6,7 +6,7 @@ import {
 import { AuthService } from '../api/services/AuthService'
 import { Container } from 'typedi'
 import FacebookTokenStrategy from 'passport-facebook-token'
-import GooglePlusTokenStrategy from 'passport-google-plus-token'
+import { Strategy as GoogleStrategy } from 'passport-token-google2'
 import { LocalAuth } from '../api/models/LocalAuth'
 import LocalStrategy from 'passport-local'
 import { ROLES } from '../api/constants'
@@ -185,11 +185,12 @@ export const passportLoader: MicroframeworkLoader = (
         }
 
         /* Google Strategy */
+        // For this Strategy the access_token is in fact the id_token!
 
         if (env.oauth.google.enabled) {
             passport.use(
-                'googleToken',
-                new GooglePlusTokenStrategy(
+                'google-token',
+                new GoogleStrategy(
                     {
                         clientID: env.oauth.google.appId,
                         clientSecret: env.oauth.google.appSecret
@@ -201,7 +202,7 @@ export const passportLoader: MicroframeworkLoader = (
 
             expressApp.post(env.oauth.google.authUrl, (req, res) => {
                 passport.authenticate(
-                    'googleToken',
+                    'google-token',
                     { session: false },
                     (err, user) => authenticateResponse(err, user)(res)
                 )(req, res)
